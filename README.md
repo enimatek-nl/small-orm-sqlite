@@ -48,13 +48,9 @@ console.log(
   orm.countBy(User, "age > ?", [21]),
 ); // Only 2 users are now older than 21
 
-const users = orm.findMany(User, "active = ?", [true]);
+const users = orm.findMany(User, "id > 0", [], 1, 4); // Returns only 1 result on offset 4
 
-console.log(
-  users[0].userName,
-); // Joe Deno! is our only active user
-
-orm.delete(users[0]); // Removed from the DB
+orm.delete(users[0]); // Removed it from the DB
 ```
 
 ## Extra Features
