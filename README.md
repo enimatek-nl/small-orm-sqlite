@@ -5,6 +5,11 @@ Very small Object-relational mapper (bare essential) to quickly setup embedded d
 ## Learn By Examples
 
 ```typescript
+import {
+  SmallSQLiteORM,
+  SmallSQLiteTable,
+} from "https://deno.land/x/smallorm_sqlite/mod.ts";
+
 // extend SmallSQLiteTable on your model
 // it will add an incremental id by default
 export class User extends SmallSQLiteTable {
@@ -48,6 +53,8 @@ const users = orm.findMany(User, "active = ?", [true]);
 console.log(
   users[0].userName,
 ); // Joe Deno! is our only active user
+
+orm.delete(users[0]); // Removed from the DB
 ```
 
 ## Extra Features

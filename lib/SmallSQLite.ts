@@ -104,6 +104,8 @@ export class SmallSQLiteORM<T extends SmallSQLiteTable> {
     table: (new () => T),
     whereClause?: string,
     valueClause?: (boolean | string | number)[],
+    limit?: number,
+    offset?: number,
     countOnly?: boolean,
   ): { count: number; objects: T[] } {
     let select = "*";
@@ -111,7 +113,9 @@ export class SmallSQLiteORM<T extends SmallSQLiteTable> {
     const obj = new table();
     const rows = this.db.query(
       "SELECT " + select + ' FROM "' + obj.constructor.name + '"' +
-        (whereClause ? (" WHERE " + whereClause) : ""),
+        (whereClause ? (" WHERE " + whereClause) : "") +
+        (limit ? " LIMIT " + limit : "") +
+        (offset ? " OFFSET " + offset : ""),
       valueClause,
     );
     if (!countOnly) {
@@ -133,6 +137,13 @@ export class SmallSQLiteORM<T extends SmallSQLiteTable> {
     }
   }
 
+  public delete<T extends SmallSQLiteTable>(obj: T) {
+    this.db.query(
+      'DELETE FROM "' + obj.constructor.name + '" WHERE id = ?',
+      [obj.id],
+    );
+  }
+
   public save<T extends SmallSQLiteTable>(obj: T) {
     if (obj.id === -1) this.insertRecord(obj);
     else this.updateRecord(obj);
@@ -146,12 +157,14 @@ export class SmallSQLiteORM<T extends SmallSQLiteTable> {
     table: (new () => T),
     whereClause?: string,
     valueClause?: (boolean | string | number)[],
+    limit?: number,
+    offset?: number,
   ) {
-    return this.find(table, whereClause, valueClause).objects;
+    return this.find(table, whereClause, valueClause, limit, offset).objects;
   }
 
   public count<T extends SmallSQLiteTable>(table: (new () => T)) {
-    return this.find(table, undefined, [], true).count;
+    return this.find(table, undefined, [], 0, 0, true).count;
   }
 
   public countBy<T extends SmallSQLiteTable>(
@@ -159,6 +172,6 @@ export class SmallSQLiteORM<T extends SmallSQLiteTable> {
     whereClause?: string,
     valueClause?: (boolean | string | number)[],
   ) {
-    return this.find(table, whereClause, valueClause, true).count;
+    return this.find(table, whereClause, valueClause, 0, 0, true).count;
   }
 }
