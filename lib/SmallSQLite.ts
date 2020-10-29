@@ -4,10 +4,10 @@ export class SmallSQLiteTable {
   id = -1;
 }
 
-export class SmallSQLiteORM<T extends SmallSQLiteTable> {
+export class SmallSQLiteORM {
   public db: DB;
 
-  constructor(dbName: string, entities: (new () => T)[]) {
+  constructor(dbName: string, entities: (new () => SmallSQLiteTable)[]) {
     this.db = new DB(dbName);
     for (const entity of entities) {
       const obj = new entity();
