@@ -4,11 +4,21 @@ export class SmallSQLiteTable {
     id = -1;
 }
 
+export interface SmallSQLiteDefaults {
+    bool: boolean, str: string, int: number
+}
+
 export class SmallSQLiteORM {
     public db: DB;
+    private defaults: SmallSQLiteDefaults;
 
-    constructor(dbName: string, entities: (new () => SmallSQLiteTable)[]) {
+    constructor(dbName: string, entities: (new () => SmallSQLiteTable)[], defaults?: SmallSQLiteDefaults) {
         this.db = new DB(dbName);
+        defaults ? this.defaults = defaults : this.defaults = {
+            bool: false,
+            int: -1,
+            str: ""
+        };
         for (const entity of entities) {
             const obj = new entity();
             this.createTable(obj); // create the table if it is not yet there
@@ -31,11 +41,11 @@ export class SmallSQLiteORM {
         if (column === "id") {
             return "integer PRIMARY KEY AUTOINCREMENT NOT NULL";
         } else if (typeof v?.value === "boolean") {
-            return "boolean NOT NULL DEFAULT false";
+            return "boolean NOT NULL DEFAULT " + this.defaults.bool;
         } else if (typeof v?.value === "string") {
-            return 'varchar DEFAULT ""';
+            return 'varchar DEFAULT "' + this.defaults.str + '"';
         } else if (typeof v?.value === "number") {
-            return "integer NOT NULL DEFAULT -1";
+            return "integer NOT NULL DEFAULT " + this.defaults.int;
         }
         return undefined;
     }

@@ -1,4 +1,6 @@
-# Small SQLite ORM
+# SmallORM SQLite
+
+**S**i**m**ple **L**itt**l**e ORM for SQLite
 
 Very small Object-relational mapper (bare essential) to quickly setup embedded database in SQLite Deno/Typescript/Web.
 
@@ -19,13 +21,19 @@ export class User extends SmallSQLiteTable {
   age = 18;
 }
 
-const orm = new SmallSQLiteORM("test.db", [User]);
+export class AnotherTable extends SmallSQLiteTable { }
+
+const orm = new SmallSQLiteORM(
+  "test.db", // Name of the db file
+  [User, AnotherTable], // All models to Map
+  { bool: false, int: 0, str: "" }  // DEFAULT values for all types
+);
 
 const user = new User();
 
 user.address = "Denoland 12";
 user.userName = "Joe Deno";
-user.active = true; // Make Joe active
+user.active = true;
 orm.save(user);
 
 console.log(user.id); // Joe now has an id of 1 in our DB
@@ -48,9 +56,9 @@ console.log(
   orm.countBy(User, "age > ?", [21]),
 ); // Only 2 users are now older than 21
 
-const users = orm.findMany(User, "id > 0", [], 1, 4); // Returns only 1 result on offset 4
+const users = orm.findMany(User, "id > ?", [0], 1, 4); // Returns only 1 (LIMIT) user on OFFSET 4
 
-orm.delete(users[0]); // Removed it from the DB
+orm.delete(users[0]); // Removed user row from the DB
 ```
 
 ## Extra Features
