@@ -182,14 +182,17 @@ export class SmallSQLiteORM {
         return this.find(table, "id = ?", [id]).objects[0];
     }
 
-    /** SELECT * FROM table and return all models matching the given parameters
+    /**
+     * SELECT * FROM table and return all models matching the given parameters
+     * ```ts
+     * const users = orm.findMany(User, "id > ?", [0], 1, 4);
+     * ```
      * @param table 
      * @param whereClause undefined to skip else it will be added to a WHERE clause
      * @param valueClause values to fill the ? in the whereClause
      * @param limit used in LIMIT
      * @param offset used in OFFSET
-     * @example
-     * const users = orm.findMany(User, "id > ?", [0], 1, 4);
+     * 
      */
     public findMany<T extends SmallSQLiteTable>(table: (new () => T), whereClause?: string, valueClause?: (boolean | string | number)[],
         limit?: number, offset?: number) {
