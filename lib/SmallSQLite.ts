@@ -37,9 +37,9 @@ export class SmallSQLiteORM {
     /**
      * Creates an instance of SmallSQLiteORM.
      * 
-     * @param {string} dbName | Name of the database file on disk
-     * @param {(new () => SmallSQLiteTable)[]} entities | Array of all models extending {@link SmallSQLiteTable}
-     * @param {SmallSQLiteDefaults} [defaults] | Optional interface to overwrite DEFAULT column values
+     * @param {string} dbName - Name of the database file on disk
+     * @param {(new () => SmallSQLiteTable)[]} entities - Array of all models extending {@link SmallSQLiteTable}
+     * @param {SmallSQLiteDefaults} [defaults] - Optional interface to overwrite DEFAULT column values
      * @memberof SmallSQLiteORM
      */
     constructor(dbName: string, entities: (new () => SmallSQLiteTable)[], defaults?: SmallSQLiteDefaults) {
@@ -167,7 +167,7 @@ export class SmallSQLiteORM {
      * DELETE the obj from the SQLite database
      *
      * @template T
-     * @param {T} obj | model based on {@link SmallSQLiteTable} 
+     * @param {T} obj - model based on {@link SmallSQLiteTable} 
      * @memberof SmallSQLiteORM
      */
     public delete<T extends SmallSQLiteTable>(obj: T) {
@@ -179,7 +179,7 @@ export class SmallSQLiteORM {
      * INSERT or UPDATE the obj based on the id (INSERT when -1 else UPDATE)
      *
      * @template T
-     * @param {T} obj | model based on {@link SmallSQLiteTable} 
+     * @param {T} obj - model based on {@link SmallSQLiteTable} 
      * @memberof SmallSQLiteORM
      */
     public save<T extends SmallSQLiteTable>(obj: T) {
@@ -193,7 +193,7 @@ export class SmallSQLiteORM {
      *
      * @template T
      * @param {(new () => T)} table
-     * @param {number} id | id to match with {@link SmallSQLiteTable} 
+     * @param {number} id - id to match with {@link SmallSQLiteTable} 
      * @return {*} 
      * @memberof SmallSQLiteORM
      */
@@ -207,10 +207,10 @@ export class SmallSQLiteORM {
      *
      * @template T
      * @param {(new () => T)} table
-     * @param {string} [whereClause] | undefined to skip else it will be added to a WHERE clause
-     * @param {((boolean | string | number)[])} [valueClause] | values to fill the ? in the whereClause
-     * @param {number} [limit] | used in LIMIT
-     * @param {number} [offset] | used in OFFSET
+     * @param {string} [whereClause] - undefined to skip else it will be added to a WHERE clause
+     * @param {((boolean | string | number)[])} [valueClause] - values to fill the ? in the whereClause
+     * @param {number} [limit] - used in LIMIT
+     * @param {number} [offset] - used in OFFSET
      * @return {*} 
      * @memberof SmallSQLiteORM
      */
@@ -238,8 +238,8 @@ export class SmallSQLiteORM {
      *
      * @template T
      * @param {(new () => T)} table
-     * @param {string} [whereClause] | undefined to skip else it will be added to a WHERE clause
-     * @param {((boolean | string | number)[])} [valueClause] | values to fill the ? in the whereClause
+     * @param {string} [whereClause] - undefined to skip else it will be added to a WHERE clause
+     * @param {((boolean | string | number)[])} [valueClause] - values to fill the ? in the whereClause
      * @return {*} 
      * @memberof SmallSQLiteORM
      */
