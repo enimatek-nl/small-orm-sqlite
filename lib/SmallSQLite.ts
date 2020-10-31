@@ -22,7 +22,7 @@ export interface SmallSQLiteDefaults {
 
 
 /**
- * ORM Wrapper to interact with deno.land/x/sqlite using your {@link SmallSQLiteTable}
+ * ORM Wrapper to interact with deno.land/x/sqlite using your `SmallSQLiteTable`
  * @export
  * @class SmallSQLiteORM
  */
@@ -33,7 +33,7 @@ export class SmallSQLiteORM {
     /**
      * Create an instance of SmallSQLiteORM
      * @param dbName the name of the database file on disk used by sqlite
-     * @param entities array of all models extending {@link SmallSQLiteDefaults}
+     * @param entities array of all models extending `SmallSQLiteTable`
      * @param defaults optional configuration to override DEFAULT vaules of columns by type
      */
     constructor(dbName: string, entities: (new () => SmallSQLiteTable)[], defaults?: SmallSQLiteDefaults) {
@@ -158,7 +158,7 @@ export class SmallSQLiteORM {
 
     /**
      * DELETE the obj from the SQLite database
-     * @param obj model based on {@link SmallSQLiteTable} 
+     * @param obj model based on `SmallSQLiteTable`
      */
     public delete<T extends SmallSQLiteTable>(obj: T) {
         this.db.query('DELETE FROM "' + obj.constructor.name + '" WHERE id = ?', [obj.id]);
@@ -166,7 +166,7 @@ export class SmallSQLiteORM {
 
     /**
      * INSERT or UPDATE the obj based on the id (INSERT when -1 else UPDATE)
-     * @param obj model based on {@link SmallSQLiteTable} 
+     * @param obj model based on `SmallSQLiteTable`
      */
     public save<T extends SmallSQLiteTable>(obj: T) {
         if (obj.id === -1) this.insertRecord(obj);
@@ -176,19 +176,20 @@ export class SmallSQLiteORM {
     /**
      * SELECT * FROM table and return model WHERE id equals given id
      * @param table 
-     * @param id id to match with {@link SmallSQLiteTable} 
+     * @param id id to match with `SmallSQLiteTable`
      */
     public findOne<T extends SmallSQLiteTable>(table: (new () => T), id: number) {
         return this.find(table, "id = ?", [id]).objects[0];
     }
 
-    /**
-     * SELECT * FROM table and return all models matching the given parameters
+    /** SELECT * FROM table and return all models matching the given parameters
      * @param table 
      * @param whereClause undefined to skip else it will be added to a WHERE clause
      * @param valueClause values to fill the ? in the whereClause
      * @param limit used in LIMIT
      * @param offset used in OFFSET
+     * @example
+     * const users = orm.findMany(User, "id > ?", [0], 1, 4);
      */
     public findMany<T extends SmallSQLiteTable>(table: (new () => T), whereClause?: string, valueClause?: (boolean | string | number)[],
         limit?: number, offset?: number) {
