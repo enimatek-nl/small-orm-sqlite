@@ -3,6 +3,13 @@ import { DB } from "https://deno.land/x/sqlite/mod.ts";
 
 /**
  * All your model classes should extend this class.
+ * ```ts
+ * class User extends SmallSQLiteTable {
+ *     username = "";
+ *     age = 18;
+ *     active = false;
+ * }
+ * ```
  * @export
  * @class SmallSQLiteTable
  */
@@ -32,6 +39,9 @@ export class SmallSQLiteORM {
 
     /**
      * Create an instance of SmallSQLiteORM
+     * ```ts
+     * const orm = new SmallSQLiteORM("test.db", [User]);
+     * ```
      * @param dbName the name of the database file on disk used by sqlite
      * @param entities array of all models extending `SmallSQLiteTable`
      * @param defaults optional configuration to override DEFAULT vaules of columns by type
@@ -175,6 +185,9 @@ export class SmallSQLiteORM {
 
     /**
      * SELECT * FROM table and return model WHERE id equals given id
+     * ```ts
+     * const user = orm.findOne(User, 1);
+     * ```
      * @param table 
      * @param id id to match with `SmallSQLiteTable`
      */
