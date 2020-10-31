@@ -1,17 +1,47 @@
 import { DB } from "https://deno.land/x/sqlite/mod.ts";
 
+
+/**
+ * All your model classes should extend this class.
+ *
+ * @export
+ * @class SmallSQLiteTable
+ */
 export class SmallSQLiteTable {
     id = -1;
 }
 
+
+/**
+ * Interface for the DEFAULT Column values
+ *
+ * @export
+ * @interface SmallSQLiteDefaults
+ */
 export interface SmallSQLiteDefaults {
     bool: boolean, str: string, int: number
 }
 
+
+/**
+ * ORM Wrapper to interact with deno.land/x/sqlite using your {@link SmallSQLiteTable}
+ *
+ * @export
+ * @class SmallSQLiteORM
+ */
 export class SmallSQLiteORM {
     public db: DB;
     private defaults: SmallSQLiteDefaults;
 
+
+    /**
+     * Creates an instance of SmallSQLiteORM.
+     * 
+     * @param {string} dbName | Name of the database file on disk
+     * @param {(new () => SmallSQLiteTable)[]} entities | Array of all models extending {@link SmallSQLiteTable}
+     * @param {SmallSQLiteDefaults} [defaults] | Optional interface to overwrite DEFAULT column values
+     * @memberof SmallSQLiteORM
+     */
     constructor(dbName: string, entities: (new () => SmallSQLiteTable)[], defaults?: SmallSQLiteDefaults) {
         this.db = new DB(dbName);
         defaults ? this.defaults = defaults : this.defaults = {
@@ -132,28 +162,87 @@ export class SmallSQLiteORM {
         }
     }
 
+
+    /**
+     * DELETE the obj from the SQLite database
+     *
+     * @template T
+     * @param {T} obj | model based on {@link SmallSQLiteTable} 
+     * @memberof SmallSQLiteORM
+     */
     public delete<T extends SmallSQLiteTable>(obj: T) {
         this.db.query('DELETE FROM "' + obj.constructor.name + '" WHERE id = ?', [obj.id]);
     }
 
+
+    /**
+     * INSERT or UPDATE the obj based on the id (INSERT when -1 else UPDATE)
+     *
+     * @template T
+     * @param {T} obj | model based on {@link SmallSQLiteTable} 
+     * @memberof SmallSQLiteORM
+     */
     public save<T extends SmallSQLiteTable>(obj: T) {
         if (obj.id === -1) this.insertRecord(obj);
         else this.updateRecord(obj);
     }
 
+
+    /**
+     * SELECT * FROM table and return model WHERE id equals given id
+     *
+     * @template T
+     * @param {(new () => T)} table
+     * @param {number} id | id to match with {@link SmallSQLiteTable} 
+     * @return {*} 
+     * @memberof SmallSQLiteORM
+     */
     public findOne<T extends SmallSQLiteTable>(table: (new () => T), id: number) {
         return this.find(table, "id = ?", [id]).objects[0];
     }
 
+
+    /**
+     * SELECT * FROM table and return all models matching the given parameters
+     *
+     * @template T
+     * @param {(new () => T)} table
+     * @param {string} [whereClause] | undefined to skip else it will be added to a WHERE clause
+     * @param {((boolean | string | number)[])} [valueClause] | values to fill the ? in the whereClause
+     * @param {number} [limit] | used in LIMIT
+     * @param {number} [offset] | used in OFFSET
+     * @return {*} 
+     * @memberof SmallSQLiteORM
+     */
     public findMany<T extends SmallSQLiteTable>(table: (new () => T), whereClause?: string, valueClause?: (boolean | string | number)[],
         limit?: number, offset?: number) {
         return this.find(table, whereClause, valueClause, limit, offset).objects;
     }
 
+
+    /**
+     * COUNT(*) on all records in the table given
+     *
+     * @template T
+     * @param {(new () => T)} table
+     * @return {*} 
+     * @memberof SmallSQLiteORM
+     */
     public count<T extends SmallSQLiteTable>(table: (new () => T)) {
         return this.find(table, undefined, [], 0, 0, true).count;
     }
 
+
+    /**
+     * COUNT(*) on all records in the table given matching the whereClause
+     *
+     * @template T
+     * @param {(new () => T)} table
+     * @param {string} [whereClause] | undefined to skip else it will be added to a WHERE clause
+     * @param {((boolean | string | number)[])} [valueClause] | values to fill the ? in the whereClause
+     * @return {*} 
+     * @memberof SmallSQLiteORM
+     */
     public countBy<T extends SmallSQLiteTable>(table: (new () => T), whereClause?: string, valueClause?: (boolean | string | number)[]) {
         return this.find(table, whereClause, valueClause, 0, 0, true).count;
     }
