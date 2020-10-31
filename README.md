@@ -1,6 +1,6 @@
 # SmallORM SQLite
 
-[![deno doc](https://doc.deno.land/badge.svg)](https://doc.deno.land/https/deno.land/std/fs/mod.ts)
+[![deno doc](https://doc.deno.land/badge.svg)](https://doc.deno.land/https/raw.githubusercontent.com/cybertim/SmallSQLiteORM/main/mod.ts)
 
 **S**i**m**ple **L**itt**l**e ORM for SQLite
 Very small Object-relational mapper (bare essential) to quickly setup embedded database in SQLite Deno/Typescript/Web.
@@ -63,7 +63,7 @@ orm.delete(users[0]); // Removed user row from the DB
 ```
 
 ## Documentation
-View it online at [doc.deno.land](https://doc.deno.land/https/deno.land/std/fs/mod.ts)
+View it online at [doc.deno.land](https://doc.deno.land/https/raw.githubusercontent.com/cybertim/SmallSQLiteORM/main/mod.ts)
 
 ## Extra Features
  - Automatically CREATE TABLE when database file is initialized
