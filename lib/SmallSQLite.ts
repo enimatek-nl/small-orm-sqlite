@@ -150,9 +150,11 @@ export class SmallSQLiteORM {
             valueClause
         );
         if (!countOnly) {
-            const names = rows.columns()
-                .map((item) => item.name);
             const list: T[] = [];
+            let names: string[] = [];
+            try { names = rows.columns().map((item) => item.name); } catch (e) {
+                return { count: 0, objects: list };
+            }
             for (const row of rows) {
                 const nobj = new table();
                 for (let i = 0; i < names.length; i++) {
