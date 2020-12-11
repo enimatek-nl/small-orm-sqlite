@@ -1,52 +1,67 @@
 import { DB } from "https://deno.land/x/sqlite/mod.ts";
 
-
 /**
  * All your model classes should extend this class.
  * ```ts
- * class User extends SmallSQLiteTable {
+ * class User extends SSQLTable {
  *     username = "";
  *     age = 18;
  *     active = false;
  * }
  * ```
  * @export
- * @class SmallSQLiteTable
+ * @class SSQLTable
  */
-export class SmallSQLiteTable {
+export class SSQLTable {
     id = -1;
 }
-
 
 /**
  * Interface for the DEFAULT Column values
  * @export
- * @interface SmallSQLiteDefaults
+ * @interface SSQLDefaults
  */
-export interface SmallSQLiteDefaults {
-    bool: boolean, str: string, int: number
+export interface SSQLDefaults {
+    bool: boolean;
+    str: string;
+    int: number;
 }
 
+/**
+ * Interface used for queries
+ */
+export interface SSQLQuery {
+    where?: {
+        clause: string;
+        values: (boolean | string | number)[]
+    },
+    order?: {
+        by: string;
+        desc?: boolean;
+    },
+    limit?: number,
+    offset?: number
+}
 
 /**
- * ORM Wrapper to interact with deno.land/x/sqlite using your `SmallSQLiteTable`
+ * ORM Wrapper to interact with deno.land/x/sqlite using your `SSQLTable`
  * @export
- * @class SmallSQLiteORM
+ * @class SSQL
  */
-export class SmallSQLiteORM {
+export class SSQL {
     public db: DB;
-    private defaults: SmallSQLiteDefaults;
+    private defaults: SSQLDefaults;
 
     /**
-     * Create an instance of SmallSQLiteORM
+     * Create an instance of SSQL
      * ```ts
-     * const orm = new SmallSQLiteORM("test.db", [User]);
+     * const orm = new SSQL("test.db", [User]);
      * ```
      * @param dbName the name of the database file on disk used by sqlite
-     * @param entities array of all models extending `SmallSQLiteTable`
+     * @param entities array of all models extending `SSQLTable`
      * @param defaults optional configuration to override DEFAULT vaules of columns by type
      */
-    constructor(dbName: string, entities: (new () => SmallSQLiteTable)[], defaults?: SmallSQLiteDefaults) {
+    constructor(dbName: string, entities: (new () => SSQLTable)[], defaults?: SSQLDefaults) {
         this.db = new DB(dbName);
         defaults ? this.defaults = defaults : this.defaults = {
             bool: false,
@@ -70,7 +85,7 @@ export class SmallSQLiteORM {
         }
     }
 
-    private columnInfo<T extends SmallSQLiteTable>(table: T, column: string) {
+    private columnInfo<T extends SSQLTable>(table: T, column: string) {
         const v = Object.getOwnPropertyDescriptor(table, column);
         if (column === "id") {
             return "integer PRIMARY KEY AUTOINCREMENT NOT NULL";
@@ -84,27 +99,27 @@ export class SmallSQLiteORM {
         return undefined;
     }
 
-    private alterTable<T extends SmallSQLiteTable>(table: T, columns: string[]) {
+    private alterTable<T extends SSQLTable>(table: T, columns: string[]) {
         for (const column of columns) {
             const statement = 'ALTER TABLE "' + table.constructor.name.toLowerCase() +
                 '\" ADD COLUMN ' + column + " " +
-                this.columnInfo<SmallSQLiteTable>(table, column);
+                this.columnInfo<SSQLTable>(table, column);
             this.db.query(statement);
         }
     }
 
-    private createTable<T extends SmallSQLiteTable>(table: T) {
+    private createTable<T extends SSQLTable>(table: T) {
         const names = Object.getOwnPropertyNames(table);
         let statement = 'CREATE TABLE IF NOT EXISTS "' + table.constructor.name.toLowerCase() + '" (';
         for (const p of names) {
             if (!statement.endsWith("(")) statement += ", ";
-            statement += '"' + p + '" ' + this.columnInfo<SmallSQLiteTable>(table, p);
+            statement += '"' + p + '" ' + this.columnInfo<SSQLTable>(table, p);
         }
         statement += ")";
         this.db.query(statement);
     }
 
-    private insertRecord<T extends SmallSQLiteTable>(table: T) {
+    private insertRecord<T extends SSQLTable>(table: T) {
         const names = Object.getOwnPropertyNames(table);
         names.splice(0, 1);
         const statement = 'INSERT INTO "' +
@@ -120,7 +135,7 @@ export class SmallSQLiteORM {
         table.id = this.db.lastInsertRowId;
     }
 
-    private updateRecord<T extends SmallSQLiteTable>(table: T) {
+    private updateRecord<T extends SSQLTable>(table: T) {
         const names = Object.getOwnPropertyNames(table);
         names.splice(0, 1);
         let statement = 'UPDATE "' + table.constructor.name.toLowerCase() + '" SET ';
@@ -136,18 +151,18 @@ export class SmallSQLiteORM {
         this.db.query(statement, data);
     }
 
-    private find<T extends SmallSQLiteTable>(
-        table: (new () => T), whereClause?: string, valueClause?: (boolean | string | number)[],
-        limit?: number, offset?: number, countOnly?: boolean): { count: number; objects: T[] } {
+    private find<T extends SSQLTable>(
+        table: (new () => T), query: SSQLQuery, countOnly?: boolean): { count: number; objects: T[] } {
         let select = "*";
         if (countOnly) select = "COUNT(*) AS total";
         const obj = new table();
         const rows = this.db.query(
             "SELECT " + select + ' FROM "' + obj.constructor.name + '"' +
-            (whereClause ? (" WHERE " + whereClause) : "") +
-            (limit ? " LIMIT " + limit : "") +
-            (offset ? " OFFSET " + offset : ""),
-            valueClause
+            (query.where ? (" WHERE " + query.where.clause) : "") +
+            (query.order ? (" ORDER BY " + query.order.by + (query.order.desc ? " DESC " : " ASC ")) : "") +
+            (query.limit ? " LIMIT " + query.limit : "") +
+            (query.offset ? " OFFSET " + query.offset : ""),
+            (query.where ? query.where.values : [])
         );
         if (!countOnly) {
             const list: T[] = [];
@@ -170,17 +185,17 @@ export class SmallSQLiteORM {
 
     /**
      * DELETE the obj from the SQLite database
-     * @param obj model based on `SmallSQLiteTable`
+     * @param obj model based on `SSQLTable`
      */
-    public delete<T extends SmallSQLiteTable>(obj: T) {
+    public delete<T extends SSQLTable>(obj: T) {
         this.db.query('DELETE FROM "' + obj.constructor.name + '" WHERE id = ?', [obj.id]);
     }
 
     /**
      * INSERT or UPDATE the obj based on the id (INSERT when -1 else UPDATE)
-     * @param obj model based on `SmallSQLiteTable`
+     * @param obj model based on `SSQLTable`
      */
-    public save<T extends SmallSQLiteTable>(obj: T) {
+    public save<T extends SSQLTable>(obj: T) {
         if (obj.id === -1) this.insertRecord(obj);
         else this.updateRecord(obj);
     }
@@ -191,44 +206,37 @@ export class SmallSQLiteORM {
      * const user = orm.findOne(User, 1);
      * ```
      * @param table 
-     * @param id id to match with `SmallSQLiteTable`
+     * @param id id to match with `SSQLTable`
      */
-    public findOne<T extends SmallSQLiteTable>(table: (new () => T), id: number) {
-        return this.find(table, "id = ?", [id]).objects[0];
+    public findOne<T extends SSQLTable>(table: (new () => T), id: number) {
+        return this.find(table, { where: { clause: "id = ?", values: [id] } }).objects[0];
     }
 
     /**
-     * SELECT * FROM table and return all models matching the given parameters
      * ```ts
-     * const users = orm.findMany(User, "id > ?", [0], 1, 4);
+     * const users = orm.findMany(User, { where: { clause: "username = ?", values: [username] }});
      * ```
      * @param table 
-     * @param whereClause undefined to skip else it will be added to a WHERE clause
-     * @param valueClause values to fill the ? in the whereClause
-     * @param limit used in LIMIT
-     * @param offset used in OFFSET
-     * 
+     * @param query 
      */
-    public findMany<T extends SmallSQLiteTable>(table: (new () => T), whereClause?: string, valueClause?: (boolean | string | number)[],
-        limit?: number, offset?: number) {
-        return this.find(table, whereClause, valueClause, limit, offset).objects;
+    public findMany<T extends SSQLTable>(table: (new () => T), query: SSQLQuery) {
+        return this.find(table, query).objects;
     }
 
     /**
      * COUNT(*) on all records in the table given
      * @param table 
      */
-    public count<T extends SmallSQLiteTable>(table: (new () => T)) {
-        return this.find(table, undefined, [], 0, 0, true).count;
+    public count<T extends SSQLTable>(table: (new () => T)) {
+        return this.find(table, {}, true).count;
     }
 
     /**
-     * COUNT(*) on all records in the table given matching the whereClause
+     * COUNT(*) on all records in the table given matching the `SSQLQuery` query object
      * @param table 
-     * @param whereClause undefined to skip else it will be added to a WHERE clause
-     * @param valueClause values to fill the ? in the whereClause
+     * @param query 
      */
-    public countBy<T extends SmallSQLiteTable>(table: (new () => T), whereClause?: string, valueClause?: (boolean | string | number)[]) {
-        return this.find(table, whereClause, valueClause, 0, 0, true).count;
+    public countBy<T extends SSQLTable>(table: (new () => T), query: SSQLQuery) {
+        return this.find(table, query, true).count;
     }
 }

@@ -1,66 +1,80 @@
-# SmallORM SQLite
+# Small ORM SQLite
 
 [![deno doc](https://doc.deno.land/badge.svg)](https://doc.deno.land/https/raw.githubusercontent.com/cybertim/SmallSQLiteORM/main/mod.ts)
 
-**S**i**m**ple **L**itt**l**e ORM for SQLite
 Very small Object-relational mapper (bare essential) to quickly setup embedded database in SQLite Deno/Typescript/Web.
 
 ## Learn By Examples
 
 ```typescript
-import {
-  SmallSQLiteORM,
-  SmallSQLiteTable,
-} from "https://deno.land/x/smallorm_sqlite/mod.ts";
+import { SSQL, SSQLTable } from "./lib/SmallSQLite.ts";
 
-// extend SmallSQLiteTable on your model
-// it will add an incremental id by default
-export class User extends SmallSQLiteTable {
-  userName = "";
-  address = "";
-  active = false;
-  age = 18;
+export class User extends SSQLTable {
+    userName = "";
+    address = "";
+    active = false;
+    age = 0;
 }
 
-export class AnotherTable extends SmallSQLiteTable { }
+export class Log extends SSQLTable {
+    userId = -1;
+    insertDate = new Date().getDate();
+    description = "";
+    status = 0;
+}
 
-const orm = new SmallSQLiteORM(
-  "test.db", // Name of the db file
-  [User, AnotherTable], // All models to Map
-  { bool: false, int: 0, str: "" }  // DEFAULT values for all types
-);
+const orm = new SSQL("test.db", [User, Log]);
 
 const user = new User();
 
 user.address = "Denoland 12";
 user.userName = "Joe Deno";
-user.active = true;
+user.active = true; // Make Joe active
 orm.save(user);
 
 console.log(user.id); // Joe now has an id of 1 in our DB
 
+// Add 5 total some Logs
 for (let i = 0; i < 5; i++) {
-  orm.save(new User()); // Add some more users...
+    const log = new Log();
+    log.userId = user.id;
+    log.description = "log " + i;
+    log.status = 1;
+    orm.save(log);
+}
+
+console.log("5 logs total: " + orm.count(Log));
+
+// Update only 2 logs with status 2 in the db
+for (const log of orm.findMany(Log, { limit: 2 })) {
+    log.status = 2;
+    orm.save(log);
 }
 
 console.log(
-  orm.count(User),
-); // Shows 6 total users in the db
+    "Count only 2 logs with status > 1: " +
+    orm.countBy(Log, { where: { clause: "status > ?", values: [1] } })
+);
 
-let i = 0;
-for (const u of orm.findMany(User)) {
-  u.age = 18 + (i++);
-  orm.save(u); // Update the age of all our users
-}
+const orderedLogs = orm.findMany(Log, {
+    where: { clause: "status < ?", values: [2] },
+    order: { by: "id", desc: true }
+})
 
-console.log(
-  orm.countBy(User, "age > ?", [21]),
-); // Only 2 users are now older than 21
+for (const l of orderedLogs) console.log("ordered desc: " + l.id + " " + l.status);
 
-const users = orm.findMany(User, "id > ?", [0], 1, 4); // Returns only 1 (LIMIT) user on OFFSET 4
+const logs = orm.findMany(Log, { offset: 4, limit: 1 }); // Returns only 1 result on offset 4
 
-orm.delete(users[0]); // Removed user row from the DB
+const logUser = orm.findOne(User, logs[0].userId); // quickly retrieve the user of the log
+
+orm.delete(logs[0]); // Removed from the DB
+
+console.log("only 4 logs left: " + orm.count(Log));
 ```
+
+## Breaking changes 0.1.5 -> 0.2.0
+* Classnames have been renamed eg. `SmallSQLiteORM` changed into `SSQL`.
+* All methodcalls use the `SSQLQuery` object instead with more options.
 
 ## Documentation
 View it online at [doc.deno.land](https://doc.deno.land/https/raw.githubusercontent.com/cybertim/SmallSQLiteORM/main/mod.ts)
