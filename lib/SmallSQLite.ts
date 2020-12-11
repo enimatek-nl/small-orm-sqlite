@@ -1,7 +1,8 @@
 import { DB } from "https://deno.land/x/sqlite/mod.ts";
 
 /**
- * All your model classes should extend this class.
+ * All your model classes should extend this class
+ * It includes the incremental 'id' by default
  * ```ts
  * class User extends SSQLTable {
  *     username = "";
@@ -17,7 +18,7 @@ export class SSQLTable {
 }
 
 /**
- * Interface for the DEFAULT Column values
+ * Interface used to override the DEFAULT column type values
  * @export
  * @interface SSQLDefaults
  */

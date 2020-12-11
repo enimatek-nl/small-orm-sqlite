@@ -1,4 +1,4 @@
-# Small ORM SQLite
+# Small SQLite ORM
 
 [![deno doc](https://doc.deno.land/badge.svg)](https://doc.deno.land/https/raw.githubusercontent.com/cybertim/SmallSQLiteORM/main/mod.ts)
 
